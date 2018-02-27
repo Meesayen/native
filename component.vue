@@ -66,23 +66,21 @@
       error: null,
       data: {}
     }),
-    created () {
+    created() {
       loadFields(this, JSON.parse(JSON.stringify(this.schema)))
 
       this.default = { ...this.value }
       this.data = { ...this.value }
     },
-    render (createElement) {
+    render(createElement) {
       const nodes = []
 
       if (this.schema.title) {
-        nodes.push(createElement(
-          components.title.component, this.schema.title))
+        nodes.push(createElement(components.title.component, this.schema.title))
       }
 
       if (this.schema.description) {
-        nodes.push(createElement(
-          components.description.component, this.schema.description))
+        nodes.push(createElement(components.description.component, this.schema.description))
       }
 
       if (this.error) {
@@ -93,21 +91,21 @@
           errorNodes.push(this.error)
         }
 
-        nodes.push(createElement(
-          components.error.component, errorOptions, errorNodes))
+        nodes.push(createElement(components.error.component, errorOptions, errorNodes))
       }
 
       if (this.fields.length) {
         const formNodes = []
 
-        this.fields.forEach((field) => {
+        this.fields.forEach(field => {
           if (!field.value) {
             field.value = this.value[field.name]
           }
 
-          const element = field.hasOwnProperty('items') && field.type !== 'select'
-            ? components[`${field.type}group`] || defaultGroup
-            : components[field.type] || defaultInput
+          const element =
+            field.hasOwnProperty('items') && field.type !== 'select'
+              ? components[`${field.type}group`] || defaultGroup
+              : components[field.type] || defaultInput
 
           const fieldOptions = this.elementOptions(element, field, field)
           const children = []
@@ -119,7 +117,7 @@
               value: this.value[field.name]
             },
             on: {
-              input: (event) => {
+              input: event => {
                 const value = event && event.target ? event.target.value : event
 
                 this.$set(this.data, field.name, value)
@@ -146,32 +144,42 @@
             case 'radio':
             case 'checkbox':
               if (field.hasOwnProperty('items')) {
-                field.items.forEach((item) => {
-                  const itemOptions = this.elementOptions(
-                    components[field.type], item, item, item)
+                field.items.forEach(item => {
+                  const itemOptions = this.elementOptions(components[field.type], item, item, item)
 
-                  children.push(createElement(
-                    components[field.type].component, itemOptions, item.label))
+                  children.push(
+                    createElement(components[field.type].component, itemOptions, item.label)
+                  )
                 })
               }
               break
 
             case 'select':
-              if (!field.required) {
-                children.push(createElement(components.option.component))
-              }
+              // if (!field.required) {
+              //   children.push(createElement(components.option.component))
+              // }
 
-              field.items.forEach((option) => {
-                const optionOptions = this.elementOptions(components.option, {
-                  value: option.value
-                }, field)
-
-                children.push(createElement(components.option.component, {
-                  domProps: {
-                    value: option.value
+              field.items.forEach(option => {
+                const optionOptions = this.elementOptions(
+                  components.option,
+                  {
+                    value: option.value || ''
                   },
-                  ...optionOptions
-                }, option.label))
+                  field
+                )
+
+                children.push(
+                  createElement(
+                    components.option.component,
+                    {
+                      domProps: {
+                        value: option.value || ''
+                      },
+                      ...optionOptions
+                    },
+                    option.label
+                  )
+                )
               })
               break
           }
@@ -187,11 +195,17 @@
             const labelNodes = []
 
             if (components.label.option.native) {
-              labelNodes.push(createElement('span', {
-                attrs: {
-                  'data-required-field': field.required ? 'true' : 'false'
-                }
-              }, field.label))
+              labelNodes.push(
+                createElement(
+                  'span',
+                  {
+                    attrs: {
+                      'data-required-field': field.required ? 'true' : 'false'
+                    }
+                  },
+                  field.label
+                )
+              )
             }
 
             labelNodes.push(inputElement)
@@ -201,8 +215,9 @@
               labelNodes.push(createElement('small', field.description))
             }
 
-            formControlsNodes.push(createElement(
-              components.label.component, labelOptions, labelNodes))
+            formControlsNodes.push(
+              createElement(components.label.component, labelOptions, labelNodes)
+            )
           } else {
             formControlsNodes.push(inputElement)
 
@@ -213,11 +228,17 @@
           }
 
           if (this.inputWrappingClass) {
-            formNodes.push(createElement('div', {
-              class: this.inputWrappingClass
-            }, formControlsNodes))
+            formNodes.push(
+              createElement(
+                'div',
+                {
+                  class: this.inputWrappingClass
+                },
+                formControlsNodes
+              )
+            )
           } else {
-            formControlsNodes.forEach((node) => formNodes.push(node))
+            formControlsNodes.forEach(node => formNodes.push(node))
           }
         })
 
@@ -227,14 +248,12 @@
           : components.button
 
         if (button.component instanceof Array) {
-          formNodes.push(createElement(
-            components.label.component, labelOptions, button.component))
+          formNodes.push(createElement(components.label.component, labelOptions, button.component))
         } else {
           const buttonOptions = this.elementOptions(button)
           const buttonElement = createElement(button.component, buttonOptions, button.option.label)
 
-          formNodes.push(createElement(
-            components.label.component, labelOptions, [buttonElement]))
+          formNodes.push(createElement(components.label.component, labelOptions, [buttonElement]))
         }
 
         const formOptions = this.elementOptions(components.form, {
@@ -242,45 +261,50 @@
           novalidate: this.novalidate
         })
 
-        nodes.push(createElement(components.form.component, {
-          ref: '__form',
-          on: {
-            submit: (event) => {
-              event.stopPropagation()
-              this.submit(event)
+        nodes.push(
+          createElement(
+            components.form.component,
+            {
+              ref: '__form',
+              on: {
+                submit: event => {
+                  event.stopPropagation()
+                  this.submit(event)
+                },
+                invalid: this.invalid
+              },
+              ...formOptions
             },
-            invalid: this.invalid
-          },
-          ...formOptions
-        }, formNodes))
+            formNodes
+          )
+        )
       }
 
       return createElement('div', nodes)
     },
-    mounted () {
+    mounted() {
       this.reset()
     },
-    setComponent (type, component, option = {}) {
+    setComponent(type, component, option = {}) {
       components[type] = { component, option }
     },
     methods: {
       /**
        * @private
        */
-      optionValue (field, target, item = {}) {
-        return typeof target === 'function'
-          ? target({ vm: this, field, item })
-          : target
+      optionValue(field, target, item = {}) {
+        return typeof target === 'function' ? target({ vm: this, field, item }) : target
       },
 
       /**
        * @private
        */
-      elementOptions (element, extendingOptions = {}, field = {}, item = {}) {
+      elementOptions(element, extendingOptions = {}, field = {}, item = {}) {
         const attrName = element.option.native ? 'attrs' : 'props'
-        const elementProps = typeof element.option === 'function'
-          ? element.option
-          : { ...element.option, native: undefined }
+        const elementProps =
+          typeof element.option === 'function'
+            ? element.option
+            : { ...element.option, native: undefined }
         const options = this.optionValue(field, elementProps, item)
 
         return { [attrName]: { ...extendingOptions, ...options } }
@@ -289,7 +313,7 @@
       /**
        * @private
        */
-      changed (e) {
+      changed(e) {
         /**
          * Fired when a change to the element's value is committed by the user.
          */
@@ -299,7 +323,7 @@
       /**
        * Get a form input reference
        */
-      input (name) {
+      input(name) {
         if (!this.$refs[name]) {
           throw new Error(`Undefined input reference '${name}'`)
         }
@@ -309,21 +333,21 @@
       /**
        * Get the form reference
        */
-      form () {
+      form() {
         return this.$refs.__form
       },
 
       /**
        * Checks whether the form has any constraints and whether it satisfies them. If the form fails its constraints, the browser fires a cancelable `invalid` event at the element, and then returns false.
        */
-      checkValidity () {
+      checkValidity() {
         return this.$refs.__form.checkValidity()
       },
 
       /**
        * @private
        */
-      invalid (e) {
+      invalid(e) {
         /**
          * Fired when a submittable element has been checked and doesn't satisfy its constraints. The validity of submittable elements is checked before submitting their owner form, or after the `checkValidity()` of the element or its owner form is called.
          */
@@ -333,7 +357,7 @@
       /**
        * Reset the value of all elements of the parent form.
        */
-      reset () {
+      reset() {
         for (let key in this.default) {
           this.$set(this.data, key, this.default[key])
         }
@@ -342,7 +366,7 @@
       /**
        * Send the content of the form to the server
        */
-      submit (event) {
+      submit(event) {
         if (this.checkValidity()) {
           /**
            * Fired when a form is submitted
@@ -354,14 +378,14 @@
       /**
        * Set a message error.
        */
-      setErrorMessage (message) {
+      setErrorMessage(message) {
         this.error = message
       },
 
       /**
        * clear the message error.
        */
-      clearErrorMessage () {
+      clearErrorMessage() {
         this.error = null
       }
     }
